@@ -5,7 +5,7 @@ import ProgressBar from './components/ProgressBar'
 import { supabase } from './supabaseClient'
 import toast, { Toaster } from 'react-hot-toast'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:10000'
 
 function App() {
   const [session, setSession] = useState(null)

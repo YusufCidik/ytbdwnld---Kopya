@@ -1,3 +1,8 @@
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+import { execSync, spawn } from 'child_process';
 import os from 'os';
 
 // Path to local binaries if they exist (for portable bundling)
@@ -10,7 +15,7 @@ const getYtDlpCommand = () => fs.existsSync(localYtDlp) ? localYtDlp : 'yt-dlp';
 const getFfmpegCommand = () => fs.existsSync(localFfmpeg) ? localFfmpeg : 'ffmpeg';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
 app.use(cors()); // Allow all origins for web deployment
 app.use(express.json());
