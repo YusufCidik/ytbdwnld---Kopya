@@ -95,6 +95,7 @@ app.get('/api/info', (req, res) => {
     '--flat-playlist',
     '--no-check-certificates',
     '--no-warnings',
+    '--extractor-args', 'youtube:player_client=android',
     url
   ]);
 
@@ -178,6 +179,9 @@ app.get('/api/download', async (req, res) => {
     
     // Add --newline for easier progress parsing
     args.push('--newline');
+    
+    // Attempt to bypass YouTube bot detection
+    args.push('--extractor-args', 'youtube:player_client=android');
     
     args.push('-o', tempFilePath);
     args.push(url);
