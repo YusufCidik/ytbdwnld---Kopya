@@ -11,8 +11,9 @@ const localBinPath = process.env.BIN_PATH || path.join(process.cwd(), 'bin');
 const localYtDlp = path.join(localBinPath, 'yt-dlp.exe');
 const localFfmpeg = path.join(localBinPath, 'ffmpeg.exe');
 
-const getYtDlpCommand = () => fs.existsSync(localYtDlp) ? localYtDlp : 'yt-dlp';
-const getFfmpegCommand = () => fs.existsSync(localFfmpeg) ? localFfmpeg : 'ffmpeg';
+const isWindows = os.platform() === 'win32';
+const getYtDlpCommand = () => (isWindows && fs.existsSync(localYtDlp)) ? localYtDlp : 'yt-dlp';
+const getFfmpegCommand = () => (isWindows && fs.existsSync(localFfmpeg)) ? localFfmpeg : 'ffmpeg';
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -41,6 +42,15 @@ const tasks = new Map();
 
 app.get('/api/status', (req, res) => {
   res.json({ ffmpeg: ffmpegAvailable });
+});
+
+app.get('/api/test', (req, res) => {
+  try {
+    const version = execSync(`"${getYtDlpCommand()}" --version`).toString().trim();
+    res.json({ status: 'ok', ytdlp: version, ffmpeg: ffmpegAvailable });
+  } catch (err) {
+    res.status(500).json({ status: 'error', error: err.message });
+  }
 });
 
 // SSE endpoint for progress updates
@@ -83,22 +93,38 @@ app.get('/api/info', (req, res) => {
   const ytDlp = spawn(getYtDlpCommand(), [
     '--dump-json',
     '--flat-playlist',
+    '--no-check-certificates',
+    '--no-warnings',
     url
   ]);
 
   let output = '';
+  let errorOutput = '';
+
   ytDlp.stdout.on('data', (data) => {
     output += data.toString();
   });
 
+  ytDlp.stderr.on('data', (data) => {
+    errorOutput += data.toString();
+    console.error(`[INFO ERROR] yt-dlp stderr: ${data.toString()}`);
+  });
+
+  ytDlp.on('error', (err) => {
+    console.error(`yt-dlp process failed to start: ${err.message}`);
+    if (!res.headersSent) res.status(500).json({ error: 'Failed to start video analyzer', details: err.message });
+  });
+
   ytDlp.on('close', (code) => {
     if (code !== 0) {
-      return res.status(500).json({ error: 'Failed to fetch video info' });
+      console.error(`yt-dlp info command exited with code ${code}. Error: ${errorOutput}`);
+      return res.status(500).json({ error: 'Failed to fetch video info', details: errorOutput });
     }
     try {
       const info = JSON.parse(output);
       res.json(info);
     } catch (e) {
+      console.error('Failed to parse video info JSON:', e.message);
       res.status(500).json({ error: 'Failed to parse video info' });
     }
   });
@@ -194,6 +220,12 @@ app.get('/api/download', async (req, res) => {
       console.error(`yt-dlp error: ${msg}`);
       if (taskId) tasks.set(taskId, { status: 'error', message: 'İndirme hatası oluştu' });
     }
+  });
+
+  ytDlp.on('error', (err) => {
+    console.error(`yt-dlp download process failed to start: ${err.message}`);
+    if (taskId) tasks.set(taskId, { status: 'error', message: 'İndirme başlatılamadı' });
+    if (!res.headersSent) res.status(500).json({ error: 'Failed to start download process', details: err.message });
   });
 
   ytDlp.on('close', (code) => {
