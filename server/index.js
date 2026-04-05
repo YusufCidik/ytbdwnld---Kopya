@@ -34,12 +34,12 @@ try {
 // In-memory store for download tasks progress
 const tasks = new Map();
 
-app.get('/status', (req, res) => {
+app.get('/api/status', (req, res) => {
   res.json({ ffmpeg: ffmpegAvailable });
 });
 
 // SSE endpoint for progress updates
-app.get('/progress/:taskId', (req, res) => {
+app.get('/api/progress/:taskId', (req, res) => {
   const { taskId } = req.params;
   
   res.setHeader('Content-Type', 'text/event-stream');
@@ -71,7 +71,7 @@ app.get('/progress/:taskId', (req, res) => {
 });
 
 // Get video metadata
-app.get('/info', (req, res) => {
+app.get('/api/info', (req, res) => {
   const { url } = req.query;
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
@@ -100,7 +100,7 @@ app.get('/info', (req, res) => {
 });
 
 // Download video/audio
-app.get('/download', async (req, res) => {
+app.get('/api/download', async (req, res) => {
   const { url, format, quality, taskId } = req.query;
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
