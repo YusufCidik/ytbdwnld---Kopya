@@ -1,7 +1,8 @@
-# Use a formal Node.js lts image
+# 1. Güncel ve hafif bir Node.js imajı kullanıyoruz
 FROM node:20-slim
 
-# Install system dependencies (ffmpeg and yt-dlp requirements)
+# 2. Linux sistem bağımlılıklarını kuruyoruz (ffmpeg, python ve curl)
+# yt-dlp çalışmak için Python'a ihtiyaç duyar.
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
@@ -9,23 +10,25 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp directly
+# 3. En güncel yt-dlp sürümünü indirip çalıştırılabilir yapıyoruz
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
     chmod a+rx /usr/local/bin/yt-dlp
 
-# Set working directory
+# 4. Çalışma dizinini belirliyoruz
 WORKDIR /app
 
-# Copy package files and install dependencies
+# 5. Bağımlılıkları kopyalayıp yüklüyoruz (Sadece üretim paketleri)
 COPY package*.json ./
 RUN npm install --production
 
-# Copy server source code
+# 6. Tüm server kodlarını kopyalıyoruz
 COPY . .
 
-# Ensure the server listens on the correct port
-ENV PORT=5000
-EXPOSE 5000
+# 7. PORT AYARI (Render için hayati önem taşır)
+# Render genellikle 10000 portunu bekler, 5000'i kabul etmeyebilir.
+ENV PORT=10000
+EXPOSE 10000
 
-# Start the server
+# 8. Uygulamayı başlatıyoruz
+# index.js dosyanın adının doğru olduğundan emin ol.
 CMD ["node", "index.js"]
