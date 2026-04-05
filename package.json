@@ -1,0 +1,46 @@
+{
+  "name": "ytb-pro-downloader",
+  "version": "1.0.0",
+  "main": "electron/main.js",
+  "description": "Premium 4K YouTube Downloader",
+  "author": "YTB PRO Team",
+  "license": "MIT",
+  "scripts": {
+    "start": "concurrently \"cd server && npm start\" \"cd client && npm run dev\"",
+    "electron:dev": "electron .",
+    "electron:build": "cd client && npm run build && cd .. && electron-builder",
+    "postinstall": "cd client && npm install && cd ../server && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.ytbpro.downloader",
+    "productName": "YTB PRO Downloader",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "client/public/vite.svg"
+    },
+    "extraResources": [
+      {
+        "from": "server/bin",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "server",
+        "to": "server",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
+}

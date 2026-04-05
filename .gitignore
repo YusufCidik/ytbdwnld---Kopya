@@ -1,0 +1,7 @@
+/DEPLOY_WEB.md
+/dist_electron
+/SHARING.md
+.env
+dist/
+node_modules/
+server/bin/ffmpeg.exe
