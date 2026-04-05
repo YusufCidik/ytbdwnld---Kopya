@@ -31,6 +31,11 @@ try {
   console.warn('FFmpeg NOT detected. Downloads will be limited to 720p or lower.');
 }
 
+// Root route for health checks
+app.get('/', (req, res) => {
+  res.json({ message: 'YTB PRO API is running!', ffmpeg: ffmpegAvailable });
+});
+
 // In-memory store for download tasks progress
 const tasks = new Map();
 
